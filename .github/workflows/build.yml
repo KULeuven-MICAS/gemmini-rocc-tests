@@ -17,4 +17,6 @@ jobs:
         with:
           submodules: recursive
       - name: Build all tests
-        run: ./build.sh
+        run: |
+          export PATH=$PATH:/riscv/bin
+          ./build.sh
