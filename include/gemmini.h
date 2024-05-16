@@ -499,6 +499,19 @@ static void sp_tiled_matmul_os(const elem_t * A, const elem_t * B, const void * 
 }
 
 
+#ifdef MLIR
+extern void sp_tiled_matmul_ws(const elem_t * A, const elem_t * B,
+        const void * D, void * C,
+        scale_t A_scale_factor, scale_t B_scale_factor, scale_acc_t D_scale_factor,
+        size_t I, size_t J, size_t K, size_t pad_I, size_t pad_J, size_t pad_K,
+        size_t A_row_stride, size_t B_row_stride, size_t D_row_stride, size_t C_row_stride,
+        bool a_transpose, bool b_transpose,
+        bool full_C, bool low_D,
+        bool no_bias, bool repeating_bias,
+        int act,
+        int a_spad_id, int b_spad_id) ;
+
+#else
 static void sp_tiled_matmul_ws(const elem_t * A, const elem_t * B,
         const void * D, void * C,
         scale_t A_scale_factor, scale_t B_scale_factor, scale_acc_t D_scale_factor,
@@ -509,6 +522,7 @@ static void sp_tiled_matmul_ws(const elem_t * A, const elem_t * B,
         bool no_bias, bool repeating_bias,
         int act,
         int a_spad_id, int b_spad_id) {
+
 /*
   const uint32_t A_sp_addr_start = 0;
   const uint32_t B_sp_addr_start = BANK_NUM * BANK_ROWS - K * J * DIM;
@@ -687,9 +701,13 @@ static void sp_tiled_matmul_ws(const elem_t * A, const elem_t * B,
     full_C, low_D, !no_bias || D == NULL,
     act, a_spad_id, b_spad_id, false);
 }
+#endif
 
-
+#ifdef MLIR
+void tiled_matmul_outer(size_t dim_I, size_t dim_J, size_t dim_K,
+#else
 static void tiled_matmul_outer(size_t dim_I, size_t dim_J, size_t dim_K,
+#endif
         const elem_t* A, const elem_t* B,
         const void * D, void * C,
         size_t stride_A, size_t stride_B, size_t stride_D, size_t stride_C,
