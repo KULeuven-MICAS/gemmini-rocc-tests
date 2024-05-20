@@ -16,12 +16,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Build all tests
+      - name: Build all baremetal tests
         run: |
-          ./build.sh
+          autoconf
+          mkdir -p build
+          cd build
+          ../configure
+          make -j BAREMETAL_ONLY=1
       - name: Run all tests
         run: |
-          cd build && make test-baremetal-bareMetalC
+          cd build
+          make test-baremetal-bareMetalC
 
   tests-mlir:
     runs-on: ubuntu-latest
@@ -31,9 +36,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Build all tests
+      - name: Build all baremetal MLIR tests
         run: |
-          ./build.sh
+          autoconf
+          mkdir -p build
+          cd build
+          ../configure
+          make -j BAREMETAL_ONLY=1 MLIR=1
       - name: Run all tests
         run: |
-          cd build && make test-baremetal-bareMetalC MLIR=1
+          cd build
+          make test-baremetal-bareMetalC MLIR=1

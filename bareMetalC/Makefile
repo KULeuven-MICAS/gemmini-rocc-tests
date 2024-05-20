@@ -56,8 +56,7 @@ tests = \
 	gemmini_counter \
 	template \
 
-tests_baremetal = $(tests:=-baremetal)
-tests_baremetal_mlir = $(tests:=-baremetal-mlir)
+
 
 ifeq ($(findstring spike,$(RUNNER)),spike)
 # Currently don't support conv or conv-with-pool on spike
@@ -67,6 +66,12 @@ else
 # Don't run very long benchmarks for RTL sim
 runs_baremetal = $(addsuffix .run,$(filter-out tiled_matmul_cpu-baremetal tiled_matmul_option-baremetal,$(tests_baremetal)))
 runs_baremetal_mlir = $(addsuffix .run,$(filter-out tiled_matmul_cpu-baremetal tiled_matmul_option-baremetal,$(tests_baremetal_mlir)))
+endif
+
+ifdef MLIR
+	tests_baremetal = $(tests:=-baremetal-mlir)
+else
+	tests_baremetal = $(tests:=-baremetal)
 endif
 
 ifdef BAREMETAL_ONLY
