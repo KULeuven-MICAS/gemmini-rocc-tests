@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-tests:
+  tests-vanilla:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/kuleuven-micas/gemmini-test
@@ -23,3 +23,17 @@ jobs:
         run: |
           cd build && make test-baremetal-bareMetalC
 
+  tests-mlir:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kuleuven-micas/gemmini-test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build all tests
+        run: |
+          ./build.sh
+      - name: Run all tests
+        run: |
+          cd build && make test-baremetal-bareMetalC MLIR=1
