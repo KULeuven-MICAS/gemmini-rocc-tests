@@ -118,10 +118,6 @@ CFLAGS_BAREMETAL_MLIR := \
 	$(CFLAGS_BAREMETAL) \
 	-DMLIR=1
 
-LFLAGS_BAREMETAL_MLIR := \
-	$(LFLAGS) \
-	-L$(MLIR_KERNELS) \
-
 all: $(tests_baremetal) $(tests_baremetal_mlir) $(tests_linux) $(tests_pk)
 
 vpath %.c $(src_dir)
@@ -131,7 +127,7 @@ vpath %.c $(src_dir)
 		$(wildcard $(BENCH_COMMON)/*.c) $(wildcard $(BENCH_COMMON)/*.S) $(LIBS)
 
 %-baremetal-mlir: %.c $(GEMMINI_HEADERS)
-	$(CC_BAREMETAL) $(CFLAGS_BAREMETAL_MLIR) $< $(LFLAGS_BAREMETAL_MLIR) -o $@ \
+	$(CC_BAREMETAL) $(CFLAGS_BAREMETAL_MLIR) $< $(MLIR_KERNELS)/sp_tiled_matmul_ws.o -o $@ \
 		$(wildcard $(BENCH_COMMON)/*.c) $(wildcard $(BENCH_COMMON)/*.S) $(LIBS)
 
 %-linux: %.c $(GEMMINI_HEADERS)
