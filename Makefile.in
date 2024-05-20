@@ -4,6 +4,13 @@ XLEN            := @XLEN@
 RISCVTOOLS      := @RISCVTOOLS@
 ROCC = examples
 RUNNER         := "spike --extension=gemmini "
+ifdef MLIR
+ 	MLIR_SUFFIX:= -mlir
+else
+	MLIR_SUFFIX:=
+endif
+
+
 
 .PHONY: all bareMetalC clean imagenet transformers mlps
 all: bareMetalC imagenet transformers mlps
@@ -46,7 +53,7 @@ test-baremetal-bareMetalC:
 	 	PREFIX=$(ROCC)-bareMetalC \
 		RISCVTOOLS=$(RISCVTOOLS) \
 		RUNNER=$(RUNNER) \
-		run-baremetal
+		run-baremetal$(MLIR_SUFFIX)
 
 test-baremetal: test-baremetal-bareMetalC
 	make -C mlps	\
@@ -58,7 +65,7 @@ test-baremetal: test-baremetal-bareMetalC
 	 	PREFIX=$(ROCC)-mlps \
 		RISCVTOOLS=$(RISCVTOOLS) \
 		RUNNER=$(RUNNER) \
-	        run-baremetal
+	        run-baremetal$(MLIR_SUFFIX)
 	make -C imagenet	\
 	        -f $(abs_top_srcdir)/imagenet/Makefile \
                 TARGET_MAKEFILE=$(abs_top_srcdir)/imagenet/Makefile \
@@ -68,4 +75,4 @@ test-baremetal: test-baremetal-bareMetalC
 	 	PREFIX=$(ROCC)-imagenet \
 		RISCVTOOLS=$(RISCVTOOLS) \
 		RUNNER=$(RUNNER) \
-		run-baremetal
+		run-baremetal$(MLIR_SUFFIX)
