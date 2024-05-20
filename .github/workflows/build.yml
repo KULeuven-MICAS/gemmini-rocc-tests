@@ -26,7 +26,7 @@ jobs:
       - name: Run all tests
         run: |
           cd build
-          make test-baremetal-bareMetalC
+          make -j test-baremetal-bareMetalC
 
   tests-mlir:
     runs-on: ubuntu-latest
@@ -46,4 +46,4 @@ jobs:
       - name: Run all tests
         run: |
           cd build
-          make test-baremetal-bareMetalC MLIR=1
+          make -j test-baremetal-bareMetalC MLIR=1
