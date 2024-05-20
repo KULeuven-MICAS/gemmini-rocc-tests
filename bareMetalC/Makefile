@@ -61,11 +61,9 @@ tests = \
 ifeq ($(findstring spike,$(RUNNER)),spike)
 # Currently don't support conv or conv-with-pool on spike
 runs_baremetal = $(addsuffix .run,$(filter-out conv-baremetal conv_with_pool-baremetal,$(tests_baremetal)))
-runs_baremetal_mlir = $(addsuffix .run,$(filter-out conv-baremetal conv_with_pool-baremetal,$(tests_baremetal_mlir)))
 else
 # Don't run very long benchmarks for RTL sim
 runs_baremetal = $(addsuffix .run,$(filter-out tiled_matmul_cpu-baremetal tiled_matmul_option-baremetal,$(tests_baremetal)))
-runs_baremetal_mlir = $(addsuffix .run,$(filter-out tiled_matmul_cpu-baremetal tiled_matmul_option-baremetal,$(tests_baremetal_mlir)))
 endif
 
 ifdef MLIR
@@ -123,7 +121,7 @@ CFLAGS_BAREMETAL_MLIR := \
 	$(CFLAGS_BAREMETAL) \
 	-DMLIR=1
 
-all: $(tests_baremetal) $(tests_baremetal_mlir) $(tests_linux) $(tests_pk)
+all: $(tests_baremetal) $(tests_linux) $(tests_pk)
 
 vpath %.c $(src_dir)
 
@@ -143,7 +141,7 @@ vpath %.c $(src_dir)
 
 run-baremetal: $(runs_baremetal)
 
-run-baremetal-mlir: $(runs_baremetal_mlir)
+run-baremetal-mlir: $(runs_baremetal)
 
 %-baremetal.run: %-baremetal
 	$(RUNNER)$(abs_top_srcdir)/build/bareMetalC/$^
@@ -151,5 +149,5 @@ run-baremetal-mlir: $(runs_baremetal_mlir)
 %-baremetal-mlir.run: %-baremetal-mlir
 	$(RUNNER)$(abs_top_srcdir)/build/bareMetalC/$^
 
-junk += $(tests_baremetal) $(tests_baremetal_mlir) $(tests_linux) $(tests_pk)
+junk += $(tests_baremetal) $(tests_linux) $(tests_pk)
 
