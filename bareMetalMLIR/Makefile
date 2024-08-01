@@ -24,6 +24,8 @@ BINARY = tiled_matmul_ws-baremetal-mlir
 CLANG = clang-17
 MLIR_OPT := mlir-opt-17
 MLIR_TRANSLATE := mlir-translate-17
+
+TILE_SIZE = 128
 	
 all: ${BINARY}
 
