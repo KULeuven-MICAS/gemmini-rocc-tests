@@ -19,8 +19,10 @@ MORE_SRCS := \
 
 MLIR_OPTS := -DMLIR
 
-BINARY = tiled_matmul_128x128.x
-BINARY_ACCFG = tiled_matmul_128x128.acc_dialect.x
+BINARY = tiled_matmul_128x128.x 
+
+BINARY_ACCFG = tiled_matmul_128x128.acc_dialect.x \
+	       tiled_matmul_64x64.acc_dialect.x
 
 #BINARY = tiled_matmul_ws-baremetal-mlir
 #BINARY_ACCFG = tiled_matmul_ws-baremetal-mlir-accfg
@@ -32,19 +34,29 @@ SNAX_OPT := snax-opt
 
 TILE_SIZE = 128
 	
-all: ${BINARY}
+all:
+	$(info RUN_ACCFG = $(RUN_ACCFG))
+
 
 %.x: %.o ${SRCS}
-	riscv64-unknown-elf-gcc  -DPREALLOCATE=1 -DMULTITHREAD=1 -mcmodel=medany -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv64gc -Wa,-march=rv64gc -lm -lgcc  -DID_STRING= -DPRINT_TILE=0  -nostdlib -nostartfiles -static ${INCLUDES} ${LINKS} -DBAREMETAL=1 ${MLIR_OPTS} ${SRCS} $<  -o ${DIRTY_BUILD_DIR}/${BINARY} ${MORE_SRCS}
+	riscv64-unknown-elf-gcc  -DPREALLOCATE=1 -DMULTITHREAD=1 -mcmodel=medany -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv64gc -Wa,-march=rv64gc -lm -lgcc  -DID_STRING= -DPRINT_TILE=0  -nostdlib -nostartfiles -static ${INCLUDES} ${LINKS} -DBAREMETAL=1 ${MLIR_OPTS} ${SRCS} $<  -o ${DIRTY_BUILD_DIR}/$@ ${MORE_SRCS}
 
 %.acc_dialect.x: %.acc_dialect.o
-	riscv64-unknown-elf-gcc  -DPREALLOCATE=1 -DMULTITHREAD=1 -mcmodel=medany -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv64gc -Wa,-march=rv64gc -lm -lgcc  -DID_STRING= -DPRINT_TILE=0  -nostdlib -nostartfiles -static ${INCLUDES} ${LINKS} -DBAREMETAL=1 ${MLIR_OPTS} ${SRCS} $<  -o ${DIRTY_BUILD_DIR}/${BINARY_ACCFG} ${MORE_SRCS}
+	riscv64-unknown-elf-gcc  -DPREALLOCATE=1 -DMULTITHREAD=1 -mcmodel=medany -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv64gc -Wa,-march=rv64gc -lm -lgcc  -DID_STRING= -DPRINT_TILE=0  -nostdlib -nostartfiles -static ${INCLUDES} ${LINKS} -DBAREMETAL=1 ${MLIR_OPTS} ${SRCS} $<  -o ${DIRTY_BUILD_DIR}/$@ ${MORE_SRCS}
 
-run: ${BINARY}
-	spike --extension=gemmini ${BUILD_DIR}../bareMetalMLIR/${BINARY}
 
-run-accfg: ${BINARY_ACCFG}
-	spike --extension=gemmini ${BUILD_DIR}../bareMetalMLIR/${BINARY_ACCFG}
+sim_%: %
+	spike --extension=gemmini ${BUILD_DIR}../bareMetalMLIR/$<
+
+RUN_ACCFG = $(addprefix run_, $(BINARY_ACCFG))
+run-accfg: $(RUN_ACCFG)
+$(RUN_ACCFG): run_%: sim_%
+
+RUN = $(addprefix run_, $(BINARY))
+run: $(RUN)
+$(RUN): run_%: sim_%
+
+
 
 %.mlir: %.transform.mlir
 	${MLIR_OPT} --pass-pipeline='builtin.module(test-transform-dialect-interpreter{bind-first-extra-to-ops=linalg.quantized_matmul}, test-transform-dialect-erase-schedule)' -o $@ $^
