@@ -34,7 +34,7 @@ TILE_SIZE = 128
 	
 all: ${BINARY}
 
-%.x: %.o
+%.x: %.o ${SRCS}
 	riscv64-unknown-elf-gcc  -DPREALLOCATE=1 -DMULTITHREAD=1 -mcmodel=medany -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv64gc -Wa,-march=rv64gc -lm -lgcc  -DID_STRING= -DPRINT_TILE=0  -nostdlib -nostartfiles -static ${INCLUDES} ${LINKS} -DBAREMETAL=1 ${MLIR_OPTS} ${SRCS} $<  -o ${DIRTY_BUILD_DIR}/${BINARY} ${MORE_SRCS}
 
 %.acc_dialect.x: %.acc_dialect.o
@@ -55,13 +55,13 @@ run-accfg: ${BINARY_ACCFG}
 # replace linalg quantized matmul with function call
 replace_string = 's/linalg\.quantized_matmul ins\(%subview, %subview_7, %c0_i32, %c0_i32 : memref<\?x128xi8, strided<\[128, 1\], offset: \?>>, memref<128x\?xi8, strided<\[128, 1\], offset: \?>>, i32, i32\) outs\(%subview_8 : memref<\?x\?xi32, strided<\[128, 1\], offset: \?>>\)/func\.call @sp_tiled_matmul_ws(%subview,%subview_7,%subview_8) : (memref<?x${TILE_SIZE}xi8, strided<\[${TILE_SIZE}, 1\], offset: \?>>, memref<${TILE_SIZE}x?xi8, strided<\[${TILE_SIZE}, 1\], offset: \?>>, memref<?x?xi32, strided<\[${TILE_SIZE}, 1\], offset: \?>>) -> ()/gm;t' < tiled_matmul.mlir
 
-%.func.mlir: %.mlir
+tiled_matmul_128x128.func.mlir: tiled_matmul_128x128.mlir
 	sed -E ${replace_string} < $^ > $@
 
 replace_string_2 = 's/  }\n}/}\nfunc.func private @sp_tiled_matmul_ws(%subview: memref<?x${TILE_SIZE}xi8, strided<\[${TILE_SIZE}, 1\], offset: ?>>,%subview_7: memref<${TILE_SIZE}x?xi8, strided<\[${TILE_SIZE}, 1\], offset: \?>>, %subview_8:memref<?x?xi32, strided<\[${TILE_SIZE}, 1\], offset: \?>>)\n}/gm;t'
 
 # Add function declaration
-%.func2.mlir: %.func.mlir
+tiled_matmul_128x128.func2.mlir: tiled_matmul_128x128.func.mlir
 	sed -zE ${replace_string_2} < $^ > $@
 
 
