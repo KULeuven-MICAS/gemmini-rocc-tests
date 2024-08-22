@@ -24,8 +24,7 @@ BINARY = tiled_matmul_128x128.x
 BINARY_ACCFG = \
 			   tiled_matmul_128x128.acc_dialect.x \
 			   tiled_matmul_64x64.acc_dialect.x \
-			   tiled_matmul_32x32.acc_dialect.x \
-			   tiled_matmul_16x16.acc_dialect.x
+			   tiled_matmul_32x32.acc_dialect.x
 
 CLANG = clang-17
 MLIR_OPT := mlir-opt-17
