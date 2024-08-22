@@ -42,7 +42,7 @@ all:
 
 # Default rule, for 128x128
 tiled_matmul_128x128.x: tiled_matmul_128x128.o 
-	riscv64-unknown-elf-gcc  -DPREALLOCATE=1 -DMULTITHREAD=1 -mcmodel=medany -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv64gc -Wa,-march=rv64gc -lm -lgcc  -DID_STRING= -DPRINT_TILE=0  -nostdlib -nostartfiles -static ${INCLUDES} ${LINKS} -DBAREMETAL=1 ${MLIR_OPTS} $(word 2, $^) $<  -o ${DIRTY_BUILD_DIR}/$@ ${MORE_SRCS}
+	riscv64-unknown-elf-gcc  -DPREALLOCATE=1 -DMULTITHREAD=1 -mcmodel=medany -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv64gc -Wa,-march=rv64gc -lm -lgcc  -DID_STRING= -DPRINT_TILE=0  -nostdlib -nostartfiles -static ${INCLUDES} ${LINKS} -DBAREMETAL=1 ${MLIR_OPTS} ${SRC} $<  -o ${DIRTY_BUILD_DIR}/$@ ${MORE_SRCS}
 
 
 # Use special magic to select right C file for MLIR accfg experiments with different sizes
