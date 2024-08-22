@@ -27,9 +27,6 @@ BINARY_ACCFG = \
 			   tiled_matmul_32x32.acc_dialect.x \
 			   tiled_matmul_16x16.acc_dialect.x
 
-#BINARY = tiled_matmul_ws-baremetal-mlir
-#BINARY_ACCFG = tiled_matmul_ws-baremetal-mlir-accfg
-
 CLANG = clang-17
 MLIR_OPT := mlir-opt-17
 MLIR_TRANSLATE := mlir-translate-17
@@ -69,7 +66,7 @@ $(RUN): run_%: sim_%
 	${MLIR_OPT} --mlir-print-op-generic --pass-pipeline='builtin.module(test-transform-dialect-interpreter{bind-first-extra-to-ops=linalg.quantized_matmul}, test-transform-dialect-erase-schedule, linalg-generalize-named-ops)' $^ | sed -E 's/iterator_types =/library_call="gemmini", iterator_types =/gm;t' | ${SNAX_OPT} -p insert-accfg-op{accelerator=gemmini},convert-linalg-to-accfg,convert-accfg-to-csr -o $@
 
 # replace linalg quantized matmul with function call
-replace_string = 's/linalg\.quantized_matmul ins\(%subview, %subview_7, %c0_i32, %c0_i32 : memref<\?x128xi8, strided<\[128, 1\], offset: \?>>, memref<128x\?xi8, strided<\[128, 1\], offset: \?>>, i32, i32\) outs\(%subview_8 : memref<\?x\?xi32, strided<\[128, 1\], offset: \?>>\)/func\.call @sp_tiled_matmul_ws(%subview,%subview_7,%subview_8) : (memref<?x${TILE_SIZE}xi8, strided<\[${TILE_SIZE}, 1\], offset: \?>>, memref<${TILE_SIZE}x?xi8, strided<\[${TILE_SIZE}, 1\], offset: \?>>, memref<?x?xi32, strided<\[${TILE_SIZE}, 1\], offset: \?>>) -> ()/gm;t' < tiled_matmul.mlir
+replace_string = 's/linalg\.quantized_matmul ins\(%subview, %subview_7, %c0_i32, %c0_i32 : memref<\?x128xi8, strided<\[128, 1\], offset: \?>>, memref<128x\?xi8, strided<\[128, 1\], offset: \?>>, i32, i32\) outs\(%subview_8 : memref<\?x\?xi32, strided<\[128, 1\], offset: \?>>\)/func\.call @sp_tiled_matmul_ws(%subview,%subview_7,%subview_8) : (memref<?x${TILE_SIZE}xi8, strided<\[${TILE_SIZE}, 1\], offset: \?>>, memref<${TILE_SIZE}x?xi8, strided<\[${TILE_SIZE}, 1\], offset: \?>>, memref<?x?xi32, strided<\[${TILE_SIZE}, 1\], offset: \?>>) -> ()/gm;t'
 
 tiled_matmul_128x128.func.mlir: tiled_matmul_128x128.mlir
 	sed -E ${replace_string} < $^ > $@
