@@ -22,6 +22,8 @@ MLIR_OPTS := -DMLIR
 BINARY = tiled_matmul_128x128.x 
 
 BINARY_ACCFG = \
+			   tiled_matmul_512x512.acc_dialect.x \
+			   tiled_matmul_256x256.acc_dialect.x \
 			   tiled_matmul_128x128.acc_dialect.x \
 			   tiled_matmul_64x64.acc_dialect.x \
 			   tiled_matmul_32x32.acc_dialect.x
