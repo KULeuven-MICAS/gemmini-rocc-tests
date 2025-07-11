@@ -222,10 +222,13 @@ static uint64_t read_instret() {
 }
 
 
+//#define ROCC_INSTRUCTION_RS1_RS2(x, rs1, rs2, funct) \
+//  TRACE_SETUP_BEGIN() \
+//  ROCC_INSTRUCTION_0_R_R(x, rs1, rs2, funct) \
+//  TRACE_SETUP_END()
+
 #define ROCC_INSTRUCTION_RS1_RS2(x, rs1, rs2, funct) \
-  TRACE_SETUP_BEGIN() \
-  ROCC_INSTRUCTION_0_R_R(x, rs1, rs2, funct) \
-  TRACE_SETUP_END()
+    ROCC_INSTRUCTION_0_R_R(x, rs1, rs2, funct)
 
 // mvin and mvout
 #define gemmini_extended_mvin(dram_addr, spad_addr, cols, rows) \
