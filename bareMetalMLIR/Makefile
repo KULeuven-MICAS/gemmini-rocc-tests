@@ -21,12 +21,12 @@ MLIR_OPTS := -DMLIR
 
 BINARY = tiled_matmul_128x128.x 
 
-BINARY_ACCFG = \
-			   tiled_matmul_512x512.acc_dialect.x \
-			   tiled_matmul_256x256.acc_dialect.x \
-			   tiled_matmul_128x128.acc_dialect.x \
-			   tiled_matmul_64x64.acc_dialect.x \
-			   tiled_matmul_32x32.acc_dialect.x
+BINARY_OPT_ACCFG = \
+			   tiled_matmul_512x512.opt.acc_dialect.x \
+			   tiled_matmul_256x256.opt.acc_dialect.x \
+			   tiled_matmul_128x128.opt.acc_dialect.x \
+			   tiled_matmul_64x64.opt.acc_dialect.x \
+			   tiled_matmul_32x32.opt.acc_dialect.x
 
 BINARY_NO_OPT_ACCFG = \
 			   tiled_matmul_512x512.no_opt.acc_dialect.x \
@@ -51,12 +51,12 @@ tiled_matmul_128x128.x: tiled_matmul_128x128.o
 
 
 # Use special magic to select right C file for MLIR accfg experiments with different sizes
-tiled_matmul_%.acc_dialect.x: tiled_matmul_%.acc_dialect.o ${BUILD_DIR}../bareMetalC/tiled_matmul_ws_%.c
+tiled_matmul_%.opt.acc_dialect.x: tiled_matmul_%.opt.acc_dialect.o ${BUILD_DIR}../bareMetalC/tiled_matmul_ws_%.c
 	riscv64-unknown-elf-gcc  -DPREALLOCATE=1 -DMULTITHREAD=1 -mcmodel=medany -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv64gc -Wa,-march=rv64gc -lm -lgcc  -DID_STRING= -DPRINT_TILE=0 -DCHECK_RESULT=0 -nostdlib -nostartfiles -static ${INCLUDES} ${LINKS} -DBAREMETAL=1 ${MLIR_OPTS} $(word 2, $^) $<  -o ${DIRTY_BUILD_DIR}/$@ ${MORE_SRCS}
 
 
 # Use special magic to select right C file for MLIR accfg experiments with different sizes
-tiled_matmul_%.no_opt.acc_dialect.x: tiled_matmul_%.acc_dialect.o ${BUILD_DIR}../bareMetalC/tiled_matmul_ws_%.c
+tiled_matmul_%.no_opt.acc_dialect.x: tiled_matmul_%.no_opt.acc_dialect.o ${BUILD_DIR}../bareMetalC/tiled_matmul_ws_%.c
 	riscv64-unknown-elf-gcc  -DPREALLOCATE=1 -DMULTITHREAD=1 -mcmodel=medany -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv64gc -Wa,-march=rv64gc -lm -lgcc  -DID_STRING= -DPRINT_TILE=0 -DCHECK_RESULT=0 -nostdlib -nostartfiles -static ${INCLUDES} ${LINKS} -DBAREMETAL=1 ${MLIR_OPTS} $(word 2, $^) $<  -o ${DIRTY_BUILD_DIR}/$@ ${MORE_SRCS}
 
 sim_%: %
@@ -71,7 +71,7 @@ RUN = $(addprefix run_, $(BINARY))
 run: $(RUN)
 $(RUN): run_%: sim_%
 
-all_binaries: $(BINARY_ACCFG)
+all_binaries_opt: $(BINARY_OPT_ACCFG)
 
 all_binaries_no_opt: $(BINARY_NO_OPT_ACCFG)
 
@@ -79,7 +79,7 @@ all_binaries_no_opt: $(BINARY_NO_OPT_ACCFG)
 %.mlir: %.transform.mlir
 	${MLIR_OPT} --pass-pipeline='builtin.module(test-transform-dialect-interpreter{bind-first-extra-to-ops=linalg.quantized_matmul}, test-transform-dialect-erase-schedule)' -o $@ $^
 
-%.acc_dialect.mlir: %.transform.mlir
+%.opt.acc_dialect.mlir: %.transform.mlir
 	${MLIR_OPT} --mlir-print-op-generic --pass-pipeline='builtin.module(test-transform-dialect-interpreter{bind-first-extra-to-ops=linalg.quantized_matmul}, test-transform-dialect-erase-schedule, linalg-generalize-named-ops)' $^ | sed -E 's/iterator_types =/library_call="gemmini", iterator_types =/gm;t' | ${SNAX_OPT} -p insert-accfg-op{accelerator=gemmini},convert-linalg-to-accfg,mlir-opt{executable=mlir-opt-17\ generic=true\ arguments=-cse,-canonicalize,-allow-unregistered-dialect,-mlir-print-op-generic,-split-input-file},accfg-dedup,convert-accfg-to-csr -o $@
 
 %.no_opt.acc_dialect.mlir: %.transform.mlir
